@@ -16,5 +16,5 @@ A complete home health monitoring system for General Hospital.
 - Deployment: Vercel (Frontend), Render (Backend)
 
 ## Live Demo
-- Frontend: [Vercel Link]
-- Backend API: [Render Link]
+- Frontend: https://home-health-system.vercel.app/
+- Backend API: https://home-health-backend-gpbg.onrender.com
