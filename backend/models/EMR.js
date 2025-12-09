@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 
 // backend/models/EMR.js
-const mongoose = require('mongoose');
 
 const emrSchema = new mongoose.Schema({
   patientId: {

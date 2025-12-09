@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 
 // backend/models/Reading.js
-const mongoose = require('mongoose');
 
 const readingSchema = new mongoose.Schema({
   patientId: {
