@@ -63,7 +63,7 @@ function AdminDashboard({ user, onLogout }) {
         notes: formData.get('notes')
       }, config);
       
-      alert('âœ… Lab result added');
+      alert('✅ Lab result added');
       setShowLabForm(false);
       e.target.reset();
       fetchData();
@@ -86,7 +86,7 @@ function AdminDashboard({ user, onLogout }) {
         status: 'pending'
       }, config);
       
-      alert('âœ… Payment record created');
+      alert('✅ Payment record created');
       setShowPaymentForm(false);
       e.target.reset();
       fetchData();
@@ -100,7 +100,7 @@ function AdminDashboard({ user, onLogout }) {
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
-        <h2>ðŸ‘” Administrator Dashboard</h2>
+        <h2>👔 Administrator Dashboard</h2>
         <div className="user-info">
           <span>{user.name} - Admin</span>
           <button onClick={onLogout} className="logout-btn">Logout</button>
@@ -120,7 +120,7 @@ function AdminDashboard({ user, onLogout }) {
         {activeTab === 'overview' && (
           <div className="overview-section">
             <h3>System Overview</h3>
-
+            
             <div className="stats-grid">
               <div className="stat-card">
                 <h3>{patients.length}</h3>
@@ -240,7 +240,8 @@ function AdminDashboard({ user, onLogout }) {
 
                 <select name="paymentType" required>
                   <option value="consultation">Consultation</option>
-                  <option value="device_monitoring">Device Monitoring</option>                  <option value="home_visit">Home Visit</option>
+                  <option value="device_monitoring">Device Monitoring</option>
+                  <option value="home_visit">Home Visit</option>
                   <option value="emergency_response">Emergency Response</option>
                   <option value="medication">Medication</option>
                   <option value="lab_test">Lab Test</option>
@@ -303,7 +304,8 @@ function AdminDashboard({ user, onLogout }) {
             </div>
 
             {showLabForm && (
-              <form onSubmit={handleCreateLabResult} className="form-section">                <select name="patientId" required>
+              <form onSubmit={handleCreateLabResult} className="form-section">
+                <select name="patientId" required>
                   <option value="">Select Patient</option>
                   {patients.map(p => (
                     <option key={p._id} value={p._id}>{p.name}</option>
@@ -311,8 +313,7 @@ function AdminDashboard({ user, onLogout }) {
                 </select>
 
                 <input name="testType" placeholder="Test Type (e.g., Blood Work)" required />
-                <input name="testName" placeholder="Test Name (e.g., Complete 
-Blood Count)" required />
+                <input name="testName" placeholder="Test Name (e.g., Complete Blood Count)" required />
                 <input type="date" name="testDate" required />
 
                 <h4>Test Results</h4>
@@ -320,7 +321,7 @@ Blood Count)" required />
                 <input name="value1" placeholder="Value (e.g., 7.5)" />
                 <input name="unit1" placeholder="Unit (e.g., k/uL)" />
                 <input name="range1" placeholder="Normal Range (e.g., 4.5-11.0)" />
-
+                
                 <select name="flag1">
                   <option value="normal">Normal</option>
                   <option value="high">High</option>
@@ -359,7 +360,7 @@ Blood Count)" required />
               <h4>Patient Demographics</h4>
               <p>Total Registered Patients: {patients.length}</p>
               <p>Average Age: {patients.length > 0 
-                ? (patients.reduce((sum, p) => sum + p.age, 0) / patients.length).toFixed(1)
+                ? (patients.reduce((sum, p) => sum + p.age, 0) / patients.length).toFixed(1) 
                 : 0} years</p>
             </div>
 
@@ -375,8 +376,7 @@ Blood Count)" required />
               <p>Total Readings: {readings.length}</p>
               <p>Flagged Readings: {readings.filter(r => r.flagged).length}</p>
               <p>Flag Rate: {readings.length > 0 
-                ? ((readings.filter(r => r.flagged).length / readings.length) 
-* 100).toFixed(1)
+                ? ((readings.filter(r => r.flagged).length / readings.length) * 100).toFixed(1) 
                 : 0}%</p>
             </div>
 

@@ -54,7 +54,7 @@ function PatientDashboard({ user, onLogout }) {
 
     try {
       await axios.post(`${API_URL}/readings`, { type, value, automated: true }, config);
-      alert(`âœ… ${type.replace('_', ' ')} reading: ${value}`);
+      alert(`✅ ${type.replace('_', ' ')} reading: ${value}`);
       fetchData();
     } catch (error) {
       alert('Error submitting reading');
@@ -62,13 +62,13 @@ function PatientDashboard({ user, onLogout }) {
   };
 
   const triggerEmergency = async () => {
-    if (!window.confirm('ðŸš¨ Trigger emergency?')) return;
+    if (!window.confirm('🚨 Trigger emergency?')) return;
     try {
       await axios.post(`${API_URL}/emergencies`, {
         emergencyType: 'lifeline_button',
         message: 'Patient triggered emergency!'
       }, config);
-      alert('ðŸ†˜ EMERGENCY SENT!');
+      alert('🆘 EMERGENCY SENT!');
     } catch (error) {
       console.error('Error:', error);
     }
@@ -77,7 +77,7 @@ function PatientDashboard({ user, onLogout }) {
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
-        <h2>ðŸ‘¤ Patient Dashboard</h2>
+        <h2>👤 Patient Dashboard</h2>
         <div className="user-info">
           <span>Welcome, {user.name}</span>
           <button onClick={onLogout} className="logout-btn">Logout</button>
@@ -103,8 +103,8 @@ function PatientDashboard({ user, onLogout }) {
             </div>
 
             <div className="emergency-section">
-              <h3>ðŸ†˜ Emergency</h3>
-              <button className="emergency-btn" onClick={triggerEmergency}>ðŸš¨ LIFELINE BUTTON</button>
+              <h3>🆘 Emergency</h3>
+              <button className="emergency-btn" onClick={triggerEmergency}>🚨 LIFELINE BUTTON</button>
             </div>
 
             <div className="recent-activity">
@@ -124,10 +124,9 @@ function PatientDashboard({ user, onLogout }) {
           <div className="vitals-section">
             <h3>Submit Health Readings</h3>
             <div className="device-buttons">
-              <button onClick={() => submitVitals('blood_pressure')}>ðŸ©º Blood Pressure</button>
-              <button onClick={() => submitVitals('heart_rate')}>â Heart 
-Rate</button>
-              <button onClick={() => submitVitals('glucose')}>ðŸ©¸ Glucose</button>
+              <button onClick={() => submitVitals('blood_pressure')}>🩺 Blood Pressure</button>
+              <button onClick={() => submitVitals('heart_rate')}>❤️ Heart Rate</button>
+              <button onClick={() => submitVitals('glucose')}>🩸 Glucose</button>
             </div>
 
             <h4>Recent Readings</h4>
@@ -177,7 +176,7 @@ Rate</button>
                   <p><strong>Test Type:</strong> {lab.testType}</p>
                   <p><strong>Test Date:</strong> {new Date(lab.testDate).toLocaleDateString()}</p>
                   <p><strong>Result Date:</strong> {new Date(lab.resultDate).toLocaleDateString()}</p>
-
+                  
                   {lab.results && lab.results.length > 0 && (
                     <div className="lab-results-detail">
                       <h5>Results:</h5>
@@ -191,7 +190,7 @@ Rate</button>
                       ))}
                     </div>
                   )}
-
+                  
                   {lab.notes && (
                     <div className="lab-notes">
                       <strong>Notes:</strong> {lab.notes}
