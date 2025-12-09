@@ -1,6 +1,9 @@
+﻿const express = require('express');
+const router = express.Router();
+const { authMiddleware, roleMiddleware } = require('../middleware/authMiddleware');
+const Appointment = require('../models/Appointment');
 / backend/routes/appointments.js
 // ============================================
-const Appointment = require('../models/Appointment');
 
 router.get('/', authMiddleware, async (req, res) => {
   try {
