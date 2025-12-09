@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'https://home-health-backend-gpbg.onrender.com/api';
+const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:5000') + '/api';
 
 function AdminDashboard({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('overview');
