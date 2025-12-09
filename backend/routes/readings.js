@@ -1,28 +1,6 @@
-const express = require('express');
+﻿const express = require('express');
 const router = express.Router();
 const Reading = require('../models/Reading');
-
-// Get all readings
-router.get('/', async (req, res) => {
-  try {
-    const readings = await Reading.find().sort({ createdAt: -1 });
-    res.json(readings);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Create new reading
-router.post('/', async (req, res) => {
-  try {
-    await reading.save();
-    res.status(201).json(reading);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
-
-// backend/routes/readings.js
 const { authMiddleware } = require('../middleware/authMiddleware');
 
 // Get all readings
@@ -55,7 +33,7 @@ router.get('/', authMiddleware, async (req, res) => {
 // Get single reading
 router.get('/:id', authMiddleware, async (req, res) => {
   try {
-    const readings = await Reading.find()
+    const reading = await Reading.findById(req.params.id)
       .populate('patientId', 'name email age condition')
       .populate('reviewedBy', 'name');
     
@@ -78,6 +56,7 @@ router.post('/', authMiddleware, async (req, res) => {
   try {
     const patientId = req.user.role === 'patient' ? req.user._id : req.body.patientId;
     
+    const reading = new Reading({
       ...req.body,
       patientId
     });
@@ -101,6 +80,7 @@ router.put('/:id/review', authMiddleware, async (req, res) => {
 
     const { reviewNotes } = req.body;
     
+    const reading = await Reading.findByIdAndUpdate(
       req.params.id,
       {
         reviewedBy: req.user._id,
@@ -146,6 +126,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
       return res.status(403).json({ error: 'Only admins can delete readings' });
     }
 
+    const reading = await Reading.findByIdAndDelete(req.params.id);
     
     if (!reading) {
       return res.status(404).json({ error: 'Reading not found' });
