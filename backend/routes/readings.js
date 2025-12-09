@@ -55,6 +55,7 @@ router.get('/', authMiddleware, async (req, res) => {
 // Get single reading
 router.get('/:id', authMiddleware, async (req, res) => {
   try {
+    const readings = await Reading.find()
       .populate('patientId', 'name email age condition')
       .populate('reviewedBy', 'name');
     
