@@ -24,7 +24,6 @@ router.post('/', async (req, res) => {
 });
 
 // backend/routes/readings.js
-const express = require('express');
 const Reading = require('../models/Reading');
 const { authMiddleware } = require('../middleware/authMiddleware');
 
