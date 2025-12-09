@@ -1,3 +1,5 @@
+const mongoose = require('mongoose');
+
 // backend/models/Emergency.js
 // UPDATED - Enhanced with better tracking
 const mongoose = require('mongoose');

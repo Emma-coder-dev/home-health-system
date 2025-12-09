@@ -1,3 +1,5 @@
+const mongoose = require('mongoose');
+
 const dailyTaskSchema = new mongoose.Schema({
   assignedTo: {
     type: mongoose.Schema.Types.ObjectId,
