@@ -1,3 +1,6 @@
+﻿const express = require('express');
+const router = express.Router();
+const { authMiddleware, roleMiddleware } = require('../middleware/authMiddleware');
 const LabResult = require('../models/LabResult');
 
 router.get('/', authMiddleware, async (req, res) => {
