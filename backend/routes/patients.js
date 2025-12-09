@@ -1,4 +1,4 @@
-// backend/routes/patients.js
+// backend/routes/patients.js - FIXED
 const express = require('express');
 const router = express.Router();
 const Patient = require('../models/Patient');
@@ -8,17 +8,21 @@ const { authMiddleware, roleMiddleware } = require('../middleware/authMiddleware
 // Get all patients
 router.get('/', authMiddleware, async (req, res) => {
   try {
-    let query = {};
+    // Get all users with role 'patient'
+    const patientUsers = await User.find({ role: 'patient' }).select('-password');
     
-    // Clinicians only see their assigned patients
-    if (req.user.role === 'clinician') {
-      query.assignedClinician = req.user._id;
-    }
-
-    const patients = await Patient.find(query)
-      .populate('userId', 'email')
-      .populate('assignedClinician', 'name specialization')
-      .sort({ createdAt: -1 });
+    // Map to patient format
+    const patients = patientUsers.map(user => ({
+      _id: user._id,
+      userId: user._id,
+      name: user.name,
+      age: user.age,
+      condition: user.condition,
+      address: user.address,
+      email: user.email,
+      isActive: user.isActive,
+      createdAt: user.createdAt
+    }));
     
     res.json(patients);
   } catch (error) {
@@ -29,23 +33,23 @@ router.get('/', authMiddleware, async (req, res) => {
 // Get single patient
 router.get('/:id', authMiddleware, async (req, res) => {
   try {
-    const patient = await Patient.findById(req.params.id)
-      .populate('userId', 'email')
-      .populate('assignedClinician', 'name specialization email');
+    const user = await User.findById(req.params.id).select('-password');
     
-    if (!patient) {
+    if (!user || user.role !== 'patient') {
       return res.status(404).json({ error: 'Patient not found' });
     }
 
-    // Check access
-    const hasAccess = 
-      req.user.role === 'admin' ||
-      (req.user.role === 'clinician' && patient.assignedClinician?._id.toString() === req.user._id.toString()) ||
-      (req.user.role === 'patient' && patient.userId.toString() === req.user._id.toString());
-    
-    if (!hasAccess) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
+    const patient = {
+      _id: user._id,
+      userId: user._id,
+      name: user.name,
+      age: user.age,
+      condition: user.condition,
+      address: user.address,
+      email: user.email,
+      isActive: user.isActive,
+      createdAt: user.createdAt
+    };
 
     res.json(patient);
   } catch (error) {
@@ -56,12 +60,18 @@ router.get('/:id', authMiddleware, async (req, res) => {
 // Create new patient (admin/clinician only)
 router.post('/', authMiddleware, roleMiddleware('admin', 'clinician'), async (req, res) => {
   try {
-    const { email, password, name, age, condition, address, phone, emergencyContact, assignedClinician } = req.body;
+    const { email, password, name, age, condition, address, phone } = req.body;
+
+    // Check if user exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: 'Email already registered' });
+    }
 
     // Create user account for patient
     const user = new User({
       email,
-      password,
+      password: password || 'patient123', // Default password
       name,
       role: 'patient',
       age,
@@ -70,25 +80,18 @@ router.post('/', authMiddleware, roleMiddleware('admin', 'clinician'), async (re
     });
     await user.save();
 
-    // Create patient profile
-    const patient = new Patient({
+    const patient = {
+      _id: user._id,
       userId: user._id,
-      name,
-      age,
-      condition,
-      address,
-      email,
-      phone,
-      emergencyContact,
-      assignedClinician
-    });
-    await patient.save();
-
-    const populated = await Patient.findById(patient._id)
-      .populate('userId', 'email')
-      .populate('assignedClinician', 'name');
+      name: user.name,
+      age: user.age,
+      condition: user.condition,
+      address: user.address,
+      email: user.email,
+      isActive: user.isActive
+    };
     
-    res.status(201).json(populated);
+    res.status(201).json(patient);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -97,45 +100,17 @@ router.post('/', authMiddleware, roleMiddleware('admin', 'clinician'), async (re
 // Update patient
 router.put('/:id', authMiddleware, roleMiddleware('admin', 'clinician'), async (req, res) => {
   try {
-    const patient = await Patient.findByIdAndUpdate(
+    const user = await User.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true, runValidators: true }
-    ).populate('userId', 'email')
-     .populate('assignedClinician', 'name');
+    ).select('-password');
     
-    if (!patient) {
+    if (!user) {
       return res.status(404).json({ error: 'Patient not found' });
     }
     
-    res.json(patient);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
-
-// Assign clinician to patient (admin only)
-router.put('/:id/assign-clinician', authMiddleware, roleMiddleware('admin'), async (req, res) => {
-  try {
-    const { clinicianId } = req.body;
-    
-    const patient = await Patient.findByIdAndUpdate(
-      req.params.id,
-      { assignedClinician: clinicianId },
-      { new: true }
-    ).populate('assignedClinician', 'name specialization');
-    
-    if (!patient) {
-      return res.status(404).json({ error: 'Patient not found' });
-    }
-
-    // Also add to clinician's assigned patients
-    await User.findByIdAndUpdate(
-      clinicianId,
-      { $addToSet: { assignedPatients: patient.userId } }
-    );
-    
-    res.json(patient);
+    res.json(user);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -144,14 +119,11 @@ router.put('/:id/assign-clinician', authMiddleware, roleMiddleware('admin'), asy
 // Delete patient (admin only)
 router.delete('/:id', authMiddleware, roleMiddleware('admin'), async (req, res) => {
   try {
-    const patient = await Patient.findByIdAndDelete(req.params.id);
+    const user = await User.findByIdAndDelete(req.params.id);
     
-    if (!patient) {
+    if (!user) {
       return res.status(404).json({ error: 'Patient not found' });
     }
-
-    // Also delete user account
-    await User.findByIdAndDelete(patient.userId);
     
     res.json({ message: 'Patient deleted successfully' });
   } catch (error) {

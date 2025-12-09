@@ -1,4 +1,5 @@
-﻿const express = require('express');
+﻿// backend/routes/readings.js - FIXED
+const express = require('express');
 const router = express.Router();
 const Reading = require('../models/Reading');
 const { authMiddleware } = require('../middleware/authMiddleware');
@@ -10,6 +11,7 @@ router.get('/', authMiddleware, async (req, res) => {
     
     let query = {};
     
+    // Patients only see their own readings
     if (req.user.role === 'patient') {
       query.patientId = req.user._id;
     } else if (patientId) {
@@ -22,10 +24,12 @@ router.get('/', authMiddleware, async (req, res) => {
     const readings = await Reading.find(query)
       .populate('patientId', 'name email age condition')
       .populate('reviewedBy', 'name')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .limit(100); // Limit results
     
     res.json(readings);
   } catch (error) {
+    console.error('Get readings error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -51,9 +55,10 @@ router.get('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// Create new reading
+// Create new reading (any authenticated user)
 router.post('/', authMiddleware, async (req, res) => {
   try {
+    // If patient is creating, use their own ID
     const patientId = req.user.role === 'patient' ? req.user._id : req.body.patientId;
     
     const reading = new Reading({
@@ -65,8 +70,17 @@ router.post('/', authMiddleware, async (req, res) => {
     const populated = await Reading.findById(reading._id)
       .populate('patientId', 'name email');
     
+    console.log('Reading created:', { 
+      id: populated._id, 
+      type: populated.type, 
+      value: populated.value,
+      alertLevel: populated.alertLevel,
+      flagged: populated.flagged 
+    });
+    
     res.status(201).json(populated);
   } catch (error) {
+    console.error('Create reading error:', error);
     res.status(400).json({ error: error.message });
   }
 });
@@ -85,7 +99,8 @@ router.put('/:id/review', authMiddleware, async (req, res) => {
       {
         reviewedBy: req.user._id,
         reviewNotes,
-        reviewedAt: new Date()
+        reviewedAt: new Date(),
+        flagged: false // Clear flag after review
       },
       { new: true }
     ).populate('patientId', 'name email')

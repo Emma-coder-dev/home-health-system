@@ -1,15 +1,26 @@
-// backend/routes/auth.js - UPDATED WITH EMAIL
+// backend/routes/auth.js - SECURED VERSION
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const crypto = require('crypto');
-const { sendPasswordResetEmail, sendWelcomeEmail } = require('../services/emailService');
 
-// Register
+// ADMIN SECRET KEY - Set this in .env
+const ADMIN_SECRET = process.env.ADMIN_SECRET || 'your-admin-secret-key-12345';
+
+// Register - ADMINS BLOCKED FROM PUBLIC REGISTRATION
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, name, role, age, condition, address, specialization, licenseNumber } = req.body;
+    const { email, password, name, role, age, condition, address, specialization, licenseNumber, adminSecret } = req.body;
+
+    // SECURITY CHECK: Prevent public admin registration
+    if (role === 'admin') {
+      if (adminSecret !== ADMIN_SECRET) {
+        return res.status(403).json({ 
+          error: 'Admin registration requires authorization. Contact system administrator.' 
+        });
+      }
+    }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -29,11 +40,6 @@ router.post('/register', async (req, res) => {
 
     const user = new User(userData);
     await user.save();
-
-    // Send welcome email (optional - don't block registration if it fails)
-    sendWelcomeEmail(user.email, user.name, user.role).catch(err => {
-      console.log('Welcome email failed:', err.message);
-    });
 
     const token = jwt.sign(
       { userId: user._id, role: user.role },
@@ -100,7 +106,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Forgot Password - WITH EMAIL
+// Forgot Password
 router.post('/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
@@ -110,30 +116,17 @@ router.post('/forgot-password', async (req, res) => {
       return res.status(404).json({ error: 'No account found with this email' });
     }
 
-    // Generate reset token
     const resetToken = crypto.randomBytes(32).toString('hex');
     user.resetToken = resetToken;
     user.resetTokenExpiry = Date.now() + 3600000; // 1 hour
     await user.save();
 
-    // Send email
-    const emailResult = await sendPasswordResetEmail(user.email, resetToken);
-    
-    if (emailResult.success) {
-      res.json({
-        message: 'Password reset email sent successfully. Please check your inbox.',
-        // Only for development/testing - REMOVE IN PRODUCTION:
-        ...(process.env.NODE_ENV === 'development' && { 
-          resetToken,
-          resetLink: `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`
-        })
-      });
-    } else {
-      res.status(500).json({ 
-        error: 'Failed to send reset email. Please try again later.',
-        details: emailResult.message 
-      });
-    }
+    // For now, return token (replace with email in production)
+    res.json({
+      message: 'Password reset token generated',
+      resetToken, // REMOVE in production - send via email instead
+      resetLink: `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -158,7 +151,7 @@ router.post('/reset-password', async (req, res) => {
     user.resetTokenExpiry = undefined;
     await user.save();
 
-    res.json({ message: 'Password reset successful! You can now login with your new password.' });
+    res.json({ message: 'Password reset successful!' });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

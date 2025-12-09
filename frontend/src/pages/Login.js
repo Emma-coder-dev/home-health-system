@@ -1,4 +1,4 @@
-// frontend/src/pages/Login.js - UPDATED
+// frontend/src/pages/Login.js - SECURED
 import React, { useState } from 'react';
 import axios from 'axios';
 
@@ -75,8 +75,8 @@ function Login({ onLogin, onForgotPassword }) {
                 required
               >
                 <option value="patient">Patient</option>
-                <option value="clinician">Clinician</option>
-                <option value="admin">Administrator</option>
+                <option value="clinician">Clinician (Healthcare Professional)</option>
+                {/* ADMIN OPTION REMOVED - Admins created by system only */}
               </select>
 
               {formData.role === 'patient' && (
@@ -113,7 +113,7 @@ function Login({ onLogin, onForgotPassword }) {
                   <input
                     type="text"
                     name="specialization"
-                    placeholder="Specialization"
+                    placeholder="Specialization (e.g., Nurse, Physical Therapist)"
                     value={formData.specialization}
                     onChange={handleChange}
                     required
